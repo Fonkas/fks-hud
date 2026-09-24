@@ -316,15 +316,15 @@ local function clockText()
     return ('%s, %d %s %d  ·  %s'):format(day, GetClockDayOfMonth(), month, GetClockYear(), time)
 end
 
-local function jobText(job)
-    if not job then return '' end
-    local label = job.label or job.name or ''
-    local grade = job.grade and job.grade.name
-    if Config.Info.showGrade and grade and grade ~= '' and grade ~= label then
+local function jobText(info)
+    local label, grade = info.job or '', info.grade or ''
+    if Config.Info.showGrade and grade ~= '' and grade ~= label then
         return label .. ' - ' .. grade
     end
     return label
 end
+
+local lastMoney
 
 local lastInfo
 CreateThread(function()
@@ -332,11 +332,16 @@ CreateThread(function()
     while true do
         Wait(1000)
         if nuiReady and State.loggedIn then
-            local pd = RSGCore.Functions.GetPlayerData() or {}
+            local fw = Bridge.GetInfo()
+            -- VORP has no "money changed" event: show the +$ / -$ tip from the difference
+            if Framework == 'vorp' and Config.Info.moneyTips and lastMoney and fw.money ~= lastMoney then
+                send('moneyTip', { amount = fw.money - lastMoney, currency = Config.Info.currency })
+            end
+            lastMoney = fw.money
             local info = {
                 clock    = clockText(),
-                job      = jobText(pd.job),
-                money    = (pd.money and pd.money.cash) or 0,
+                job      = jobText(fw),
+                money    = fw.money or 0,
                 playerId = GetPlayerServerId(PlayerId()),
                 currency = Config.Info.currency,
             }
@@ -349,7 +354,7 @@ CreateThread(function()
     end
 end)
 
--- "+$5" / "-$5" when cash changes (event sent by rsg-core)
+-- "+$5" / "-$5" when cash changes (event sent by rsg-core; on VORP see the loop above)
 RegisterNetEvent('hud:client:OnMoneyChange', function(moneyType, amount, isMinus)
     if not Config.Info.enabled or not Config.Info.moneyTips or moneyType ~= 'cash' then return end
     amount = tonumber(amount) or 0
@@ -376,22 +381,9 @@ local function onLoaded()
     initNui()
 end
 
-RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
-    Wait(1000)
-    onLoaded()
-end)
-
-RegisterNetEvent('RSGCore:Client:OnPlayerUnload', function()
-    State.loggedIn = false
-end)
-
-AddEventHandler('onResourceStart', function(res)
-    if res ~= GetCurrentResourceName() then return end
-    if LocalPlayer.state.isLoggedIn then
-        Wait(500)
-        onLoaded()
-    end
-end)
+-- RSG / VORP login and logout (bridge/client.lua)
+Bridge.OnLoaded(onLoaded)
+Bridge.OnUnloaded(function() State.loggedIn = false end)
 
 AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end

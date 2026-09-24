@@ -296,6 +296,29 @@ RegisterNetEvent('hud:client:UpdateCleanliness', function(value)
 end)
 
 ---------------------------------------------------------------------------
+-- Compatibility with the vorp_metabolism events (VORP scripts)
+-- vorp_metabolism uses 0-1000 for Hunger / Thirst, fks-hud uses 0-100
+---------------------------------------------------------------------------
+local VORP_KEYS = { hunger = 'hunger', thirst = 'thirst', stress = 'stress' }
+
+RegisterNetEvent('vorpmetabolism:changeValue', function(key, value)
+    local need = VORP_KEYS[tostring(key):lower()]
+    if need and tonumber(value) then AddNeed(need, need == 'stress' and value or value / 10) end
+end)
+
+RegisterNetEvent('vorpmetabolism:setValue', function(key, value)
+    local need = VORP_KEYS[tostring(key):lower()]
+    if need and tonumber(value) then SetNeed(need, need == 'stress' and value or value / 10) end
+end)
+
+RegisterNetEvent('vorpmetabolism:getValue', function(key, cb)
+    local need = VORP_KEYS[tostring(key):lower()]
+    if type(cb) ~= 'function' then return end
+    if not need then return cb(nil) end
+    cb(need == 'stress' and State.stress or math.floor(State[need] * 10))
+end)
+
+---------------------------------------------------------------------------
 -- API for other scripts
 ---------------------------------------------------------------------------
 -- TriggerEvent('fks-hud:client:addNeeds', { hunger = 10, thirst = -5, stress = 2 })

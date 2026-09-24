@@ -1,5 +1,3 @@
-local RSGCore = exports['rsg-core']:GetCoreObject()
-
 -- chosen language (Config.Locale); any missing text falls back to English
 local lang     = Locales[Config.Locale] or Locales['en']
 local fallback = Locales['en'] or {}
@@ -18,8 +16,7 @@ end
 local function itemLabel(name)
     local cfg = Consumables[name]
     if cfg and cfg.label then return cfg.label end
-    local shared = RSGCore.Shared.Items[name]
-    return shared and shared.label or name
+    return Bridge.ItemLabel(name)
 end
 local pending   = {} -- [src] = { item = name, time = os.time() }
 local cooldowns = {} -- [src][item] = os.time() when it ends
@@ -37,25 +34,24 @@ end
 -- Automatic registration of the items in config_items.lua
 ---------------------------------------------------------------------------
 local function registerItems()
+    if Framework == 'vorp' then Wait(3000) end -- vorp_inventory loads its items from the database asynchronously
     local count = 0
     for name, data in pairs(Consumables) do
-        if not RSGCore.Shared.Items[name] then
-            print(('^3[fks-hud] warning: item "%s" does not exist in the RSG shared items (check the name or see install/items_rsg-core.lua)^0'):format(name))
+        if not Bridge.ItemExists(name) then
+            print(('^3[fks-hud] warning: item "%s" does not exist in your %s items (check the name or see the install/ folder)^0'):format(name, Framework))
         end
         if data.anim and not Animations[data.anim] then
             print(('^3[fks-hud] warning: animation "%s" of item "%s" does not exist in config_animations.lua^0'):format(data.anim, name))
         end
 
-        RSGCore.Functions.CreateUseableItem(name, function(source)
-            local src = source
-            local Player = RSGCore.Functions.GetPlayer(src)
-            if not Player then return end
+        Bridge.RegisterUsable(name, function(src)
+            if not Bridge.PlayerExists(src) then return end
 
             if pending[src] then
                 return notify(src, L('busy'), 'error')
             end
 
-            if data.requires and not Player.Functions.GetItemByName(data.requires) then
+            if data.requires and not Bridge.HasItem(src, data.requires, 1) then
                 return notify(src, L('missing_item', itemLabel(data.requires)), 'error')
             end
 
@@ -65,7 +61,7 @@ local function registerItems()
             end
 
             pending[src] = { item = name, time = os.time() }
-            TriggerClientEvent('fks-hud:client:useItem', src, name)
+            TriggerClientEvent('fks-hud:client:useItem', src, name, itemLabel(name))
         end)
         count = count + 1
     end
@@ -86,23 +82,11 @@ RegisterNetEvent('fks-hud:server:finishItem', function(itemName)
     if not p or p.item ~= itemName then return end
 
     local data = Consumables[itemName]
-    local Player = RSGCore.Functions.GetPlayer(src)
-    if not data or not Player then return end
+    if not data or not Bridge.PlayerExists(src) then return end
 
-    if not data.keep then
-        if not Player.Functions.RemoveItem(itemName, 1) then return end
-        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[itemName], 'remove', 1)
-    end
-
-    if data.requires then
-        if not Player.Functions.RemoveItem(data.requires, 1) then return end
-        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[data.requires], 'remove', 1)
-    end
-
-    if data.giveBack then
-        Player.Functions.AddItem(data.giveBack, 1)
-        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[data.giveBack], 'add', 1)
-    end
+    if not data.keep and not Bridge.RemoveItem(src, itemName, 1) then return end
+    if data.requires and not Bridge.RemoveItem(src, data.requires, 1) then return end
+    if data.giveBack then Bridge.AddItem(src, data.giveBack, 1) end
 
     if data.cooldown and data.cooldown > 0 then
         cooldowns[src] = cooldowns[src] or {}
@@ -157,8 +141,7 @@ CreateThread(function()
 end)
 
 local function licenseOf(src)
-    local Player = RSGCore.Functions.GetPlayer(src)
-    return Player and Player.PlayerData.license or GetPlayerIdentifierByType(src, 'license')
+    return Bridge.GetLicense(src)
 end
 
 lib.callback.register('fks-hud:server:getLayout', function(source)
@@ -213,21 +196,21 @@ AddEventHandler('playerDropped', function() lastSave[source] = nil end)
 ---------------------------------------------------------------------------
 local function registerNeedCommand(command, need, label)
     if not command then return end
-    RSGCore.Commands.Add(command, L('cmd_need_help', label), {
+    Bridge.RegisterAdminCommand(command, L('cmd_need_help', label), {
         { name = L('cmd_arg_value'), help = L('cmd_arg_value_help') },
         { name = L('cmd_arg_id'),    help = L('cmd_arg_id_help') },
-    }, false, function(source, args)
+    }, function(source, args)
         local value  = math.max(0, math.min(100, tonumber(args[1]) or 0))
         local target = tonumber(args[2]) or source
 
-        if not RSGCore.Functions.GetPlayer(target) then
+        if not Bridge.PlayerExists(target) then
             return notify(source, L('cmd_no_player'), 'error')
         end
 
         -- the player's client picks up the statebag change and updates the HUD
         Player(target).state:set(need, value, true)
         notify(source, L('cmd_need_set', label, target, value), 'success')
-    end, Config.Commands.adminPermission or 'admin')
+    end)
 end
 
 registerNeedCommand(Config.Commands.hunger, 'hunger', UI('hunger'))

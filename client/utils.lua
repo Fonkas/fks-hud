@@ -1,5 +1,3 @@
-RSGCore = exports['rsg-core']:GetCoreObject()
-
 -- State shared between all client files
 State = {
     loggedIn   = false,
@@ -34,12 +32,11 @@ function GetUiLocale()
     return ui
 end
 
--- item name: config label > inventory label (rsg-core / ox_inventory) > item name
+-- item name: config label > inventory label (RSG / VORP) > item name
 function ItemLabel(name)
     local cfg = Consumables and Consumables[name]
     if cfg and cfg.label then return cfg.label end
-    local shared = RSGCore.Shared.Items[name]
-    return shared and shared.label or name
+    return Bridge.ItemLabel(name)
 end
 
 function Debug(...)
@@ -73,7 +70,7 @@ function SetNeed(name, value)
     if not NEEDS[name] then return end
     value = clamp(value + 0.0, 0.0, 100.0)
     State[name] = value
-    -- rsg-core reads these statebags and saves them to the database (PersistStateBags)
+    -- saved by the framework: rsg-core persists these statebags, on VORP bridge/server.lua does it
     LocalPlayer.state:set(name, math.floor(value * 100 + 0.5) / 100, true)
 end
 
@@ -83,11 +80,10 @@ function AddNeed(name, amount)
 end
 
 function LoadNeedsFromState()
-    local st = LocalPlayer.state
-    local meta = RSGCore.Functions.GetPlayerData().metadata or {}
-    State.hunger = tonumber(st.hunger or meta.hunger) or 100.0
-    State.thirst = tonumber(st.thirst or meta.thirst) or 100.0
-    State.stress = tonumber(st.stress or meta.stress) or 0.0
+    local saved = Bridge.GetSavedNeeds()
+    State.hunger = saved.hunger
+    State.thirst = saved.thirst
+    State.stress = saved.stress
 end
 
 -- Changes made by the server (admins, rsg-medic, other scripts...)

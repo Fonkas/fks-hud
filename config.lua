@@ -10,6 +10,9 @@ Config.VersionCheck = {
 }
 Config.Locale = 'en' -- language file in locales/: 'en', 'pt', 'es', 'fr', 'de', 'it'
 
+-- 'auto' detects the running framework | 'rsg' (rsg-core) | 'vorp' (vorp_core + vorp_inventory)
+Config.Framework = 'auto'
+
 -- ------------------------------------------------
 -- Commands
 -- ------------------------------------------------
@@ -17,10 +20,11 @@ Config.Commands = {
     settings = 'hudsettings', -- opens the HUD editor
     toggle   = 'hud',         -- shows / hides the HUD
 
-    -- TEST commands, admins only (rsg-core "admin" permission)
+    -- TEST commands, admins only
     -- Usage: /hunger [value 0-100] [id]   e.g. /hunger 0   |   /hunger 50 12
     -- No value = 0. No id = yourself.
-    adminPermission = 'admin',
+    adminPermission = 'admin',                        -- RSG: rsg-core permission
+    vorpAdminGroups = { 'admin', 'superadmin' },      -- VORP: user groups allowed
     hunger = 'hunger',
     thirst = 'thirsty',
     stress = 'stress',
@@ -197,7 +201,7 @@ Config.Horse = {
 
 -- ------------------------------------------------
 -- Smoking (cigarette / cigar / pipe) - prompts shown while smoking
--- Keys: names from rsg-core/shared/keybinds.lua ('E', 'R', 'G', ...)
+-- Keys: names from the Keys table in bridge/shared.lua ('E', 'R', 'G', ...)
 -- Animations and number of puffs are in config_animations.lua
 -- ------------------------------------------------
 Config.Smoking = {

@@ -1,6 +1,6 @@
 # fks-hud
 
-HUD, metabolism and consumables for **RedM / RSG Framework**.
+HUD, metabolism and consumables for **RedM** - works with **RSG** and **VORP** (detected automatically).
 
 - Health, stamina, hunger, thirst, temperature and stress indicators (RDR2 style)
 - Horse health and stamina (read from each horse, sized by the horse level like the native HUD)
@@ -22,32 +22,39 @@ HUD, metabolism and consumables for **RedM / RSG Framework**.
 
 | Resource | |
 |---|---|
-| [rsg-core](https://github.com/Rexshack-RedM/rsg-core) | framework |
+| **RSG:** [rsg-core](https://github.com/Rexshack-RedM/rsg-core) + rsg-inventory or ox_inventory (RSG port) | framework + items |
+| **VORP:** [vorp_core](https://github.com/VORPCORE/vorp_core) + [vorp_inventory](https://github.com/VORPCORE/vorp_inventory) | framework + items |
 | [ox_lib](https://github.com/overextended/ox_lib) | notifications, progress bar, callbacks |
 | [oxmysql](https://github.com/overextended/oxmysql) | saves the `/hudsettings` settings |
-| rsg-inventory **or** ox_inventory (RSG port) | items |
+
+The framework is detected automatically (`Config.Framework = 'auto'`), or set it to `'rsg'` / `'vorp'`.
 
 ---
 
 ## Installation
 
 1. Put the `fks-hud` folder in your `resources` folder.
-2. In `server.cfg`, start it **after** its dependencies:
+2. In `server.cfg`, start it **after** its dependencies and your framework:
    ```cfg
    ensure oxmysql
    ensure ox_lib
-   ensure rsg-core
+   ensure rsg-core        # or: ensure vorp_core + ensure vorp_inventory
    ensure fks-hud
    ```
-3. **Items** - open `install/items_rsg-core.lua` and paste the lines inside the items table of
-   `rsg-core/shared/items.lua`. Using an ox_inventory that does not load the rsg-core items?
-   Use `install/items_ox_inventory.lua` instead (in `ox_inventory/data/items.lua`).
+3. **Items** (smoking items + optional tonics):
+   - **RSG:** paste `install/items_rsg-core.lua` inside the items table of `rsg-core/shared/items.lua`.
+     Using an ox_inventory that does not load the rsg-core items? Use `install/items_ox_inventory.lua`
+     (in `ox_inventory/data/items.lua`).
+   - **VORP:** import `install/items_vorp.sql` into your database. The food / drink / medical items
+     in `config_items.lua` use RSG names (`water`, `bread`, `coffee`...) - rename them to the items
+     your VORP server uses.
 4. **Images** - add `cigarette.png`, `cigar.png` and `pipe.png` to your inventory images folder
-   (`rsg-inventory/html/images/` or `ox_inventory/web/images/`).
+   (`rsg-inventory/html/images/`, `ox_inventory/web/images/` or `vorp_inventory/html/img/items/`).
 5. **Database** - nothing to do: the `fks_hud_settings` table is created on start.
    If your database user can't create tables, import `install/fks_hud.sql`.
-6. **Remove other HUDs / metabolism scripts** (rsg-hud, etc.) and do not register the same
-   consumable items as "useable" in other scripts - fks-hud registers them by itself.
+6. **Remove other HUDs / metabolism scripts** (rsg-hud, vorp_metabolism, etc.) and do not register
+   the same consumable items as "useable" in other scripts - fks-hud registers them by itself.
+   Coming from vorp_metabolism? Your players keep their hunger / thirst (same saved data).
 7. Restart the server.
 
 > The script shows a warning in the server console on start for every item in
@@ -110,7 +117,7 @@ All available fields are documented at the top of `config_items.lua`.
 | `/thirsty [0-100] [id]` | admins | set thirst |
 | `/stress [0-100] [id]` | admins | set stress |
 
-Names and the admin permission are in `Config.Commands`.
+Names and who counts as admin are in `Config.Commands` (`adminPermission` on RSG, `vorpAdminGroups` on VORP).
 
 ---
 
@@ -137,14 +144,18 @@ TriggerEvent('fks-hud:client:addNeeds', { hunger = 10, thirst = -5, stress = 2 }
 exports['fks-hud']:AddStress(source, 10)   -- negative value relieves stress
 ```
 
-### rsg-hud compatible events
-Scripts made for rsg-hud keep working:
+### Compatible events
+Scripts made for **rsg-hud** keep working:
 `hud:client:UpdateNeeds`, `hud:client:UpdateHunger`, `hud:client:UpdateThirst`,
 `hud:client:UpdateStress`, `hud:client:UpdateCleanliness`,
 `hud:server:GainStress`, `hud:server:RelieveStress`.
 
-Hunger, thirst and stress are stored in the rsg-core statebags (`hunger`, `thirst`, `stress`),
-so rsg-core saves them in the player metadata.
+Scripts made for **vorp_metabolism** keep working too (0-1000 scale is converted):
+`vorpmetabolism:changeValue`, `vorpmetabolism:setValue`, `vorpmetabolism:getValue`.
+
+Hunger, thirst and stress live in the player statebags (`hunger`, `thirst`, `stress`).
+On RSG, rsg-core saves them in the player metadata. On VORP, fks-hud saves them in the
+character `status` (the same place vorp_metabolism uses).
 
 ---
 
@@ -171,7 +182,7 @@ files and `html/img/logo.png` (check the changelog for new config options).
 
 ## License
 
-fks-hud - HUD, metabolism and consumables for RedM / RSG Framework
+fks-hud - HUD, metabolism and consumables for RedM (RSG and VORP)
 Copyright (C) 2026 Fonkas
 
 This program is free software: you can redistribute it and/or modify

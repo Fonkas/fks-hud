@@ -147,7 +147,7 @@ end
 ---------------------------------------------------------------------------
 local function makePrompt(group, key, text, hold)
     local prompt = PromptRegisterBegin()
-    PromptSetControlAction(prompt, RSGCore.Shared.Keybinds[key] or RSGCore.Shared.Keybinds['E'])
+    PromptSetControlAction(prompt, Keys[key] or Keys['E'])
     PromptSetText(prompt, CreateVarString(10, 'LITERAL_STRING', text))
     PromptSetEnabled(prompt, true)
     PromptSetVisible(prompt, true)
@@ -320,9 +320,10 @@ end
 ---------------------------------------------------------------------------
 -- 1) The server tells us to use the item
 ---------------------------------------------------------------------------
-RegisterNetEvent('fks-hud:client:useItem', function(itemName)
+RegisterNetEvent('fks-hud:client:useItem', function(itemName, label)
     local item = Consumables[itemName]
     if not item then return end
+    Bridge.SetItemLabel(itemName, label)
 
     local ped = PlayerPedId()
 
