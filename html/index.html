@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>fks-hud</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="grid"></div>
+    <div id="hud" class="off"></div>
+
+    <div id="editor" class="hidden">
+        <div class="panel-head" id="panel-head">
+            <h1 data-l="title"></h1>
+            <p data-l="subtitle"></p>
+        </div>
+
+        <div class="tabs" id="tabs"></div>
+
+        <div class="panel-body" id="panel-body"></div>
+
+        <div class="panel-foot">
+            <button class="btn ghost" id="btn-reset" data-l="reset"></button>
+            <button class="btn ghost" id="btn-export" data-l="export"></button>
+            <div class="spacer"></div>
+            <button class="btn ghost" id="btn-cancel" data-l="cancel"></button>
+            <button class="btn" id="btn-save" data-l="save"></button>
+        </div>
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

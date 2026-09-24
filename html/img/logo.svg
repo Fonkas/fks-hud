@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120">
+  <!-- Default logo. Put your own html/img/logo.png to replace it (see Config.Logo). -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3e6c8"/>
+      <stop offset="1" stop-color="#c9b48a"/>
+    </linearGradient>
+  </defs>
+  <path d="M20 20 H280 L265 60 L280 100 H20 L35 60 Z" fill="rgba(15,12,9,.75)" stroke="url(#g)" stroke-width="3"/>
+  <path d="M34 30 H266 L254 60 L266 90 H34 L46 60 Z" fill="none" stroke="url(#g)" stroke-width="1" opacity=".5"/>
+  <text x="150" y="72" text-anchor="middle" font-family="Georgia, serif" font-size="38" letter-spacing="6" fill="url(#g)">YOUR LOGO</text>
+</svg>

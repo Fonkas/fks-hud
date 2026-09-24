@@ -1,0 +1,125 @@
+Locales = Locales or {}
+
+Locales['it'] = {
+    -- generale
+    cant_now        = 'Non puoi farlo adesso.',
+    busy            = 'Stai già consumando qualcosa.',
+    not_on_horse    = 'Non puoi usarlo a cavallo.',
+    cooldown        = 'Devi aspettare %s secondi per usare di nuovo %s.',
+    missing_item    = 'Ti serve %s per usarlo.',
+    cancelled       = 'Annullato.',
+    starving        = 'Stai morendo di fame!',
+    dehydrated      = 'Sei disidratato!',
+    too_cold        = 'Stai congelando!',
+    too_hot         = 'Stai soffrendo il caldo!',
+    hud_on          = 'HUD visibile.',
+    hud_off         = 'HUD nascosto.',
+    layout_saved    = 'Impostazioni dell\'HUD salvate.',
+    layout_reset    = 'HUD ripristinato predefinito.',
+
+    -- comandi
+    cmd_settings       = 'Apri le impostazioni dell\'HUD',
+    cmd_toggle         = 'Mostra / nascondi l\'HUD',
+    cmd_need_help      = '(Admin) Imposta la %s di un giocatore',
+    cmd_arg_value      = 'valore',
+    cmd_arg_value_help = 'da 0 a 100 (senza valore = 0)',
+    cmd_arg_id         = 'id',
+    cmd_arg_id_help    = 'ID del giocatore (senza id = tu)',
+    cmd_no_player      = 'Giocatore non trovato.',
+    cmd_need_set       = '%s del giocatore %s impostata a %s.',
+
+    -- barre di avanzamento
+    progress_eating   = 'Mangiando...',
+    progress_drinking = 'Bevendo...',
+    progress_beer     = 'Bevendo una birra...',
+    progress_coffee   = 'Bevendo un caffè...',
+    progress_stew     = 'Mangiando uno stufato...',
+    progress_tonic    = 'Bevendo un tonico...',
+    progress_bandage  = 'Applicando una benda...',
+
+    -- fumare
+    smoke_puff       = 'Fuma',
+    smoke_pose       = 'Cambia posa',
+    smoke_drop       = 'Getta',
+    smoke_put_away   = 'Riponi',
+    smoke_finished   = 'Hai finito di fumare.',
+    stance_standing  = 'In piedi',
+    stance_nervous   = 'Nervoso',
+    stance_casual    = 'Disinvolto',
+    stance_walking   = 'Camminando',
+    stance_relaxed_f = 'Rilassata',
+    stance_elegant   = 'Elegante',
+    stance_pipe_hand = 'Pipa in mano',
+
+    -- notifiche (un messaggio per livello di Config.Notifications, dal più lieve al più grave)
+    notify_hunger = {
+        'Hai molta fame. Dovresti mangiare qualcosa.',
+        'Stai svenendo dalla fame! Mangia subito qualcosa!',
+    },
+    notify_thirst = {
+        'Hai molta sete. Bevi qualcosa.',
+        'Sei disidratato! Ti serve acqua subito!',
+    },
+    notify_stress = {
+        'Stai diventando teso.',
+        'Sei molto stressato. Riposati un po\', siediti o fuma.',
+        'Stai andando nel panico! Calmati!',
+    },
+    notify_exhausted = 'Stai finendo le forze! Rallenta, oppure mangia e bevi qualcosa per riprenderti.',
+    notify_recovered = 'Hai recuperato le forze.',
+
+    notify_horse_tired = {
+        'Il tuo cavallo si sta stancando. Rallenta.',
+        'Il tuo cavallo è quasi senza forze! Rallenta o lascialo riposare.',
+    },
+    notify_horse_exhausted = 'Il tuo cavallo è esausto! Fermati e lascialo riprendere, oppure dagli da mangiare.',
+    notify_horse_hurt = {
+        'Il tuo cavallo è ferito.',
+        'Il tuo cavallo è gravemente ferito! Curalo in fretta.',
+    },
+
+    -- orologio
+    days   = { 'Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato' },
+    months = { 'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic' },
+
+    -- pannello /hudsettings (inviato alla NUI)
+    ui = {
+        title         = 'Impostazioni HUD',
+        subtitle      = 'Trascina gli elementi sullo schermo per spostarli',
+        general       = 'Generale',
+        scale         = 'Scala globale',
+        opacity       = 'Opacità globale',
+        grid          = 'Aggancia alla griglia',
+        shape         = 'Forma',
+        shape_circle  = 'Cerchio',
+        shape_square  = 'Quadrato',
+        shape_hexagon = 'Esagono',
+        visible       = 'Visibile',
+        size          = 'Dimensione',
+        ring          = 'Colore dell\'anello',
+        icon          = 'Colore dell\'icona',
+        textColor     = 'Colore del testo',
+        thickness     = 'Spessore dell\'anello',
+        segments      = 'Segmenti',
+        showValue     = 'Mostra valore',
+        logoOpacity   = 'Opacità',
+        save          = 'Salva',
+        cancel        = 'Annulla',
+        reset         = 'Ripristina',
+        export        = 'Esporta',
+        exported      = 'Copiato negli appunti!',
+        health        = 'Salute',
+        stamina       = 'Resistenza',
+        hunger        = 'Fame',
+        thirst        = 'Sete',
+        temperature   = 'Temperatura',
+        stress        = 'Stress',
+        horseHealth   = 'Salute Cavallo',
+        horseStamina  = 'Resistenza Cavallo',
+        clock         = 'Giorno e Ora',
+        job           = 'Lavoro',
+        money         = 'Contanti',
+        playerId      = 'ID',
+        logo          = 'Logo',
+    },
+}

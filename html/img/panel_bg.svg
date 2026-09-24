@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" preserveAspectRatio="none">
+  <!-- /hudsettings panel background: black paint with dry brush edges (made for fks-hud) -->
+  <defs>
+    <filter id="paint" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+      <!-- ragged edges -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.035 0.6" numOctaves="3" seed="7" result="edgeNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="edgeNoise" scale="16" xChannelSelector="R" yChannelSelector="G" result="ragged"/>
+      <!-- subtle horizontal brush strokes inside -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.004 0.09" numOctaves="2" seed="3" result="streaks"/>
+      <feColorMatrix in="streaks" type="matrix"
+        values="0 0 0 0 0.85  0 0 0 0 0.8  0 0 0 0 0.72  0.32 0 0 0 -0.12" result="streakLight"/>
+      <feComposite in="streakLight" in2="ragged" operator="in" result="streakIn"/>
+      <feMerge>
+        <feMergeNode in="ragged"/>
+        <feMergeNode in="streakIn"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="14" y="14" width="372" height="472" fill="#0b0a09" filter="url(#paint)"/>
+</svg>
