@@ -1,0 +1,96 @@
+# Posts a changelog message on Discord every time a GitHub Release is published.
+#
+# Repository secrets (Settings > Secrets and variables > Actions):
+#   DISCORD_RELEASE_WEBHOOK  - webhook URL of the changelog channel (simplest option)
+#   or, to post with your bot account (and auto-publish in an Announcement channel):
+#   DISCORD_BOT_TOKEN        - your bot token
+#   DISCORD_CHANNEL_ID       - the changelog channel ID
+#
+# Optional repository variables (Settings > Secrets and variables > Actions > Variables):
+#   DISCORD_NAME     - name shown on webhook messages (default: FK Changelog)
+#   DISCORD_AVATAR   - avatar image URL for webhook messages
+#   DISCORD_COLOR    - embed color in hex (default: F2C14E, gold)
+
+name: Discord release announcement
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post the release on Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+          NAME: ${{ vars.DISCORD_NAME }}
+          AVATAR: ${{ vars.DISCORD_AVATAR }}
+          COLOR: ${{ vars.DISCORD_COLOR }}
+          REPO: ${{ github.event.repository.name }}
+          REPO_URL: ${{ github.event.repository.html_url }}
+          TAG: ${{ github.event.release.tag_name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          BODY: ${{ github.event.release.body }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re, sys, urllib.request
+
+          env = os.environ.get
+          repo, tag = env('REPO'), env('TAG') or ''
+          version = tag[1:] if tag[:1] in ('v', 'V') else tag
+          body = (env('BODY') or '').replace(chr(13), '').strip()
+
+          # GitHub release notes -> Discord markdown (Discord has no ## headings inside embeds)
+          body = re.sub(r'^#{1,6}\s*(.+)$', r'**\1**', body, flags=re.M)
+          body = re.sub(r'^\s*[\*-]\s+', '• ', body, flags=re.M)
+          body = re.sub(r'https://github\.com/([^/\s]+)/([^/\s]+)/pull/(\d+)', r'[PR #\3](https://github.com/\1/\2/pull/\3)', body)
+          if len(body) > 3900:
+              body = body[:3900].rsplit('\n', 1)[0] + '\n…'
+          if not body:
+              body = '**Full Changelog:** ' + env('RELEASE_URL')
+
+          try:
+              color = int((env('COLOR') or 'F2C14E').lstrip('#'), 16)
+          except ValueError:
+              color = 0xF2C14E
+
+          message = {
+              'content': f'# {repo} {version}\n{env("REPO_URL")}',
+              'embeds': [{
+                  'title': version,
+                  'url': env('RELEASE_URL'),
+                  'description': body,
+                  'color': color,
+              }],
+              'allowed_mentions': {'parse': []},
+          }
+
+          def post(url, data, headers):
+              req = urllib.request.Request(url, data=json.dumps(data).encode(), method='POST',
+                                           headers={'Content-Type': 'application/json', 'User-Agent': 'fks-release-bot', **headers})
+              with urllib.request.urlopen(req) as res:
+                  raw = res.read()
+                  return json.loads(raw) if raw else {}
+
+          if env('BOT_TOKEN') and env('CHANNEL_ID'):
+              auth = {'Authorization': 'Bot ' + env('BOT_TOKEN')}
+              api = f'https://discord.com/api/v10/channels/{env("CHANNEL_ID")}/messages'
+              sent = post(api, message, auth)
+              print('posted with the bot, message', sent.get('id'))
+              try:  # Announcement channel: publish so following servers receive it
+                  post(f'{api}/{sent["id"]}/crosspost', {}, auth)
+                  print('published to followers')
+              except Exception as e:
+                  print('not published (not an Announcement channel?):', e)
+          elif env('WEBHOOK'):
+              message['username'] = env('NAME') or 'FK Changelog'
+              if env('AVATAR'):
+                  message['avatar_url'] = env('AVATAR')
+              post(env('WEBHOOK').rstrip('/') + '?wait=true', message, {})
+              print('posted with the webhook')
+          else:
+              sys.exit('Add the DISCORD_RELEASE_WEBHOOK secret (or DISCORD_BOT_TOKEN + DISCORD_CHANNEL_ID).')
+          PY
