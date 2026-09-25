@@ -16,6 +16,7 @@ name: Discord release announcement
 on:
   release:
     types: [published]
+  workflow_dispatch: # "Run workflow" button: announces the latest release (for testing)
 
 jobs:
   announce:
@@ -34,11 +35,19 @@ jobs:
           TAG: ${{ github.event.release.tag_name }}
           RELEASE_URL: ${{ github.event.release.html_url }}
           BODY: ${{ github.event.release.body }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           python3 - <<'PY'
           import json, os, re, sys, urllib.request
 
           env = os.environ.get
+
+          # started with "Run workflow": use the latest published release
+          if not env('TAG'):
+              api = f'https://api.github.com/repos/{env("GITHUB_REPOSITORY")}/releases/latest'
+              latest = json.load(urllib.request.urlopen(urllib.request.Request(api, headers={'User-Agent': 'fks-release-bot'})))
+              os.environ.update(TAG=latest['tag_name'], RELEASE_URL=latest['html_url'], BODY=latest.get('body') or '')
+
           repo, tag = env('REPO'), env('TAG') or ''
           version = tag[1:] if tag[:1] in ('v', 'V') else tag
           body = (env('BODY') or '').replace(chr(13), '').strip()
