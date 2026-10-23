@@ -6,12 +6,32 @@ local nuiReady     = false
 local lastPayload  = nil
 
 ---------------------------------------------------------------------------
--- NUI
+-- NUI: the HUD is drawn inside the fks-core NUI (extension ui/hud.js + ui/hud.css), so every FKS
+-- script shares one page. fks-hud keeps its own Bridge, so it talks to fks-core through its exports.
 ---------------------------------------------------------------------------
+local CORE = 'fks-core'
+local extHandlers = {}
+
 local function send(action, data)
-    data = data or {}
-    data.action = action
-    SendNUIMessage(data)
+    exports[CORE]:UIExtSend(action, data or {})
+end
+
+local function onExt(name, fn) extHandlers[name] = fn end
+
+local function extDispatch(name, data)
+    local fn = extHandlers[name]
+    if fn then return fn(data) end
+end
+
+local function setFocus(on)
+    exports[CORE]:UIExtFocus(on)
+end
+
+-- logo: a path inside fks-hud (img/logo.png) becomes nui://fks-hud/img/logo.png; https:// links stay
+local function logoUrl(path)
+    if type(path) ~= 'string' or path == '' then return path end
+    if path:find('^%a+://') then return path end
+    return ('nui://%s/%s'):format(GetCurrentResourceName(), path:gsub('^html/', ''))
 end
 
 -- old settings stored on this PC (previous script versions)
@@ -38,11 +58,14 @@ local function fetchLayout()
 end
 
 local function initNui()
+    local logo = {}
+    for k, v in pairs(Config.Logo or {}) do logo[k] = v end
+    logo.image, logo.fallback = logoUrl(logo.image), logoUrl(logo.fallback)
     send('init', {
         defaults = Config.DefaultLayout,
         layout   = savedLayout,
         locale   = GetUiLocale(),
-        logo     = Config.Logo,
+        logo     = logo,
         editor   = Config.Hud.editor,
         low      = Config.Hud.lowWarning,
         lowNeeds = Config.Hud.needsWarning or 10,
@@ -57,40 +80,48 @@ local function initNui()
     lastPayload = nil
 end
 
-RegisterNUICallback('ready', function(_, cb)
+-- loads ui/hud.js + ui/hud.css into the fks-core NUI
+local function loadExtension()
+    exports[CORE]:UIExtend({ js = 'ui/hud.js', css = 'ui/hud.css' }, extDispatch)
     nuiReady = true
-    initNui()
-    cb('ok')
+    if State.loggedIn then initNui() end
+end
+CreateThread(loadExtension)
+
+-- fks-core restarted: its NUI is new, load the HUD into it again
+AddEventHandler('onClientResourceStart', function(res)
+    if res ~= CORE then return end
+    editorOpen = false
+    SetTimeout(500, loadExtension)
 end)
 
-RegisterNUICallback('saveLayout', function(data, cb)
+onExt('saveLayout', function(data)
+    if type(data.layout) ~= 'table' then return end
     data.layout.version = Config.LayoutVersion
     savedLayout = data.layout
     TriggerServerEvent('fks-hud:server:saveLayout', data.layout)
     Notify(L('layout_saved'), 'success')
-    cb('ok')
 end)
 
-RegisterNUICallback('resetLayout', function(_, cb)
+onExt('resetLayout', function()
     savedLayout = nil
     TriggerServerEvent('fks-hud:server:resetLayout')
     Notify(L('layout_reset'), 'inform')
-    cb('ok')
 end)
 
-RegisterNUICallback('closeEditor', function(_, cb)
+onExt('closeEditor', function()
     editorOpen = false
-    SetNuiFocus(false, false)
-    cb('ok')
+    setFocus(false)
 end)
 
 ---------------------------------------------------------------------------
 -- Commands
 ---------------------------------------------------------------------------
 RegisterCommand(Config.Commands.settings, function()
-    if not State.loggedIn then return end
+    if not State.loggedIn or editorOpen then return end
+    if exports[CORE]:UIHasFocus() then return end   -- not on top of another FKS screen
     editorOpen = true
-    SetNuiFocus(true, true)
+    setFocus(true)
     send('editor', { open = true })
 end, false)
 
@@ -188,15 +219,40 @@ local function horseExhaustion(horse, staminaPct)
     return true, ExhaustRecovery(core, start)
 end
 
+-- Horse gold boost sent by a stable script (e.g. fks-stables stimulants):
+--   TriggerEvent('fks-hud:client:horseGold', horsePed, 'stamina' | 'health', seconds)
+-- While it lasts the ring is locked full (like the player's gold tonics) and shows the timer.
+local horseGold = {} -- [horse] = { [coreIndex] = GetGameTimer() when it ends }
+
+AddEventHandler('fks-hud:client:horseGold', function(horse, which, seconds)
+    horse, seconds = tonumber(horse), tonumber(seconds) or 0
+    if not horse or seconds <= 0 then return end
+    local idx = which == 'health' and CORE_HEALTH or CORE_STAMINA
+    horseGold[horse] = horseGold[horse] or {}
+    horseGold[horse][idx] = math.max(horseGold[horse][idx] or 0, GetGameTimer() + seconds * 1000)
+end)
+
+local function horseGoldLeft(horse, index)
+    local t = horseGold[horse] and horseGold[horse][index]
+    if not t then return 0 end
+    local left = t - GetGameTimer()
+    if left <= 0 then horseGold[horse][index] = nil return 0 end
+    return math.ceil(left / 1000)
+end
+
 local lastHorseDebug
 local function horseCore(horse, index, percent, dead)
     local cap = attributeCapacity(horse, index)
+    local left = dead and 0 or horseGoldLeft(horse, index)
+    local locked = left > 0 and Config.Cores.goldLocksRing
+    if locked then percent = 100 end -- the ring does not move while gold
     return {
         outer = dead and 0 or round(percent * cap),
         rel   = dead and 0 or round(percent), -- % of THIS horse's maximum (for warnings / alerts)
         cap   = cap,
-        core  = dead and 0 or GetCore(horse, index),
-        gold  = not dead and IsCoreGold(horse, index),
+        core  = dead and 0 or (locked and 100 or GetCore(horse, index)),
+        gold  = not dead and (left > 0 or IsCoreGold(horse, index)),
+        goldLeft = Config.Cores.goldTimer and left or 0,
     }
 end
 
@@ -216,6 +272,7 @@ local function horseData(ped)
 
     local dead = IsEntityDead(horse)
     local staminaPct = GetStaminaPercent(horse)
+    if horseGoldLeft(horse, CORE_STAMINA) > 0 then staminaPct = 100 end -- gold: never exhausted
     local stamina = horseCore(horse, CORE_STAMINA, staminaPct, dead)
     if not dead then
         stamina.exhausted, stamina.recovery = horseExhaustion(horse, staminaPct)
@@ -388,7 +445,7 @@ Bridge.OnUnloaded(function() State.loggedIn = false end)
 AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
     for i = 0, 11 do Citizen.InvokeNative(0xC116E6DF68DCE667, i, 0) end
-    if editorOpen then SetNuiFocus(false, false) end
+    -- the HUD and its editor live in fks-core: they are removed (and the focus released) by it
 end)
 
 ---------------------------------------------------------------------------

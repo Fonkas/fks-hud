@@ -24,6 +24,7 @@ HUD, metabolism and consumables for **RedM** - works with **RSG** and **VORP** (
 |---|---|
 | **RSG:** [rsg-core](https://github.com/Rexshack-RedM/rsg-core) + rsg-inventory or ox_inventory (RSG port) | framework + items |
 | **VORP:** [vorp_core](https://github.com/VORPCORE/vorp_core) + [vorp_inventory](https://github.com/VORPCORE/vorp_inventory) | framework + items |
+| [fks-core](https://github.com/Fonkas/fks-core) **2.1.0+** | draws the HUD and `/hudsettings` (shared FKS UI) |
 | [ox_lib](https://github.com/overextended/ox_lib) | notifications, progress bar, callbacks |
 | [oxmysql](https://github.com/overextended/oxmysql) | saves the `/hudsettings` settings |
 
@@ -78,13 +79,14 @@ Config.Locale = 'en' -- 'en', 'pt', 'es', 'fr', 'de', 'it'
 Missing texts in a language fall back to English. Item names come from your inventory labels.
 
 ### Server logo
-Save your logo as **`html/img/logo.png`** (transparent PNG recommended) - it is used automatically.
-Without it, the default logo (`html/img/logo.svg`) is shown. Another file or a https:// link:
+Save your logo as **`img/logo.png`** (transparent PNG recommended) - it is used automatically.
+Without it, the default logo (`img/logo.svg`) is shown. Another file or a https:// link:
 ```lua
 Config.Logo = { enabled = true, image = 'img/my_logo.webp', fallback = 'img/logo.svg' }
 ```
 Default position / size / opacity: `Config.DefaultLayout.elements.logo`.
-`html/img/logo.png` is ignored by git, so updates never overwrite your logo.
+`img/logo.png` is ignored by git, so updates never overwrite your logo.
+(Coming from 1.1.0: move your logo from `html/img/` to `img/`.)
 
 ### Default layout
 Arrange the HUD in `/hudsettings`, press **Export** and paste the result over
@@ -116,6 +118,7 @@ All available fields are documented at the top of `config_items.lua`.
 | `/hunger [0-100] [id]` | admins | set hunger (no value = 0, no id = yourself) |
 | `/thirsty [0-100] [id]` | admins | set thirst |
 | `/stress [0-100] [id]` | admins | set stress |
+| `/heal [id]` | admins | set hunger and thirst to 100 (no id = yourself) |
 
 Names and who counts as admin are in `Config.Commands` (`adminPermission` on RSG, `vorpAdminGroups` on VORP).
 
@@ -169,13 +172,13 @@ Config.VersionCheck = { enabled = true, repo = 'Fonkas/fks-hud', interval = 12 }
 ```
 
 To update: download the new release and replace everything **except** your `config*.lua`
-files and `html/img/logo.png` (check the changelog for new config options).
+files and `img/logo.png` (check the changelog for new config options).
 
 ---
 
 ## Credits
 
-- Fonts: [Rye](https://fonts.google.com/specimen/Rye) and [Alegreya](https://fonts.google.com/specimen/Alegreya) - SIL Open Font License (see `html/fonts/OFL-*.txt`)
+- Interface: the HUD and `/hudsettings` are drawn by [fks-core](https://github.com/Fonkas/fks-core) (fonts and their licenses live there)
 - Native animation, interaction and object lists: [femga/rdr3_discoveries](https://github.com/femga/rdr3_discoveries)
 
 ---
@@ -197,5 +200,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program (see [`LICENSE`](LICENSE)). If not, see <https://www.gnu.org/licenses/>.
-
-The fonts in `html/fonts/` keep their own license (SIL Open Font License 1.1, see `html/fonts/OFL-*.txt`).

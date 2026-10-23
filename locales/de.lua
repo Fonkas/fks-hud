@@ -27,6 +27,8 @@ Locales['de'] = {
     cmd_arg_id_help    = 'Spieler-ID (keine ID = du selbst)',
     cmd_no_player      = 'Spieler nicht gefunden.',
     cmd_need_set       = '%s von Spieler %s auf %s gesetzt.',
+    cmd_heal_help      = '(Admin) Füllt Hunger und Durst eines Spielers auf',
+    cmd_heal_done      = 'Hunger und Durst von Spieler %s auf 100 gesetzt.',
 
     -- Fortschrittsbalken
     progress_eating   = 'Isst...',

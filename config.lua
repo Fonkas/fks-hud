@@ -28,6 +28,7 @@ Config.Commands = {
     hunger = 'hunger',
     thirst = 'thirsty',
     stress = 'stress',
+    heal   = 'heal',     -- /heal [id]: sets hunger and thirst to 100 (no id = yourself)
 }
 
 -- ------------------------------------------------
@@ -70,7 +71,7 @@ Config.Hud = {
 -- ------------------------------------------------
 -- Server logo
 -- ------------------------------------------------
--- Put your server logo in html/img/logo.png - it is used automatically.
+-- Put your server logo in img/logo.png - it is used automatically.
 -- Without it, the default logo (img/logo.svg) is shown. You can also use another file or a https:// link.
 Config.Logo = {
     enabled  = true,

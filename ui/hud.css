@@ -1,0 +1,147 @@
+/* =====================================================================
+   fks-hud inside the fks-core NUI. Tokens (--paper, --gold, --u...), fonts and the shared pieces
+   (buttons, chips, sliders...) come from fks-core; everything here is prefixed with fh-.
+   --hu = 1px at 1080p (HUD element sizes), --hs = global HUD scale (/hudsettings).
+   ===================================================================== */
+.fh {
+    --hu: calc(100vh / 1080);
+    --hs: 1;
+    --hud-font: var(--f-label);
+    --hud-danger: #d63a2a;
+    position: fixed; inset: 0; pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ HUD */
+.fh-hud { position: fixed; inset: 0; pointer-events: none; transition: opacity .4s ease; }
+.fh-hud.off { opacity: 0 !important; }
+
+.fh-el {
+    position: absolute;
+    width: calc(var(--size) * var(--hu) * var(--hs));
+    height: calc(var(--size) * var(--hu) * var(--hs));
+    transition: opacity .3s ease;
+}
+.fh-el.hide, .fh-el.away { display: none; }
+
+.fh-el.core { filter: drop-shadow(0 calc(2 * var(--hu)) calc(4 * var(--hu)) rgba(0, 0, 0, .7)); }
+.fh-el.core svg.frame { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.fh-el.core .disc  { fill: rgba(8, 7, 6, .72); }
+.fh-el.core .track { fill: none; stroke-width: 6; opacity: .22; stroke-linejoin: round; }
+.fh-el.core .ring  { fill: none; stroke-width: 6; stroke-linecap: butt; stroke-linejoin: round; transition: stroke-dashoffset .5s ease, stroke .3s; }
+
+.fh-el.core .icon {
+    position: absolute; left: 50%; top: 50%; width: 46%; height: 46%;
+    transform: translate(-50%, -50%); display: flex;
+    filter: drop-shadow(0 0 calc(2 * var(--hu)) rgba(0, 0, 0, .9));
+    transition: color .3s;
+}
+.fh-el.core .icon-bg, .fh-el.core .icon-fg { position: absolute; inset: 0; display: flex; }
+.fh-el.core .icon-bg { opacity: .28; }
+.fh-el.core .icon-fg { transition: clip-path .6s ease; }
+.fh-el.core .icon svg { width: 100%; height: 100%; }
+
+.fh-el.core .value, .fh-el.core .timer {
+    position: absolute; left: 50%;
+    font-family: var(--hud-font); font-weight: 700;
+    font-size: calc(var(--size) * .3 * var(--hu) * var(--hs)); line-height: 1; white-space: nowrap;
+    text-shadow: 0 0 4px #000, 0 0 2px #000;
+    display: none;
+}
+.fh-el.core .value { top: 100%; transform: translate(-50%, 8%); }
+.fh-el.core.show-value .value { display: block; }
+.fh-el.core .timer { bottom: 100%; transform: translate(-50%, -12%); color: var(--gold); }
+.fh-el.core.has-timer .timer { display: block; }
+.fh-el.core.has-timer .tip { bottom: calc(100% + var(--size) * .4 * var(--hu) * var(--hs)); }
+
+/* gold core (overpower) */
+.fh-el.core.gold .ring { stroke: var(--gold) !important; }
+.fh-el.core.gold .icon { color: var(--gold) !important; }
+.fh-el.core.gold { filter: drop-shadow(0 0 calc(6 * var(--hu)) rgba(242, 193, 78, .65)); }
+
+/* low value warning: only the icon turns red */
+@keyframes fh-pulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.15); } }
+.fh-el.core.low .icon { color: var(--hud-danger) !important; animation: fh-pulse .7s ease-in-out infinite; }
+.fh-el.core.exhausted .icon { transition: color 1.2s ease; }
+
+/* temperature */
+.fh-el.core.t-freezing .ring, .fh-el.core.t-freezing .icon { stroke: #4f9fe0 !important; color: #4f9fe0 !important; }
+.fh-el.core.t-cold     .ring, .fh-el.core.t-cold     .icon { stroke: #8cc4ea !important; color: #8cc4ea !important; }
+.fh-el.core.t-hot      .ring, .fh-el.core.t-hot      .icon { stroke: #e8953f !important; color: #e8953f !important; }
+.fh-el.core.t-burning  .ring, .fh-el.core.t-burning  .icon { stroke: #d63a2a !important; color: #d63a2a !important; }
+
+/* +25 / -5 when consuming */
+.fh .tip {
+    position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%);
+    font-family: var(--hud-font); font-weight: 700;
+    font-size: calc(var(--size) * .32 * var(--hu) * var(--hs)); white-space: nowrap;
+    text-shadow: 0 0 4px #000, 0 0 2px #000;
+    animation: fh-tip 2.2s ease-out forwards; pointer-events: none;
+}
+.fh .tip.good { color: #9fe07a; }
+.fh .tip.bad  { color: #ff6b5a; }
+@keyframes fh-tip {
+    0%   { opacity: 0; transform: translate(-50%, 10px); }
+    15%  { opacity: 1; transform: translate(-50%, 0); }
+    75%  { opacity: 1; transform: translate(-50%, -14px); }
+    100% { opacity: 0; transform: translate(-50%, -22px); }
+}
+
+/* text info (job, ID, cash, time) */
+.fh-el.info {
+    width: auto; height: auto; display: flex; align-items: center; gap: .4em;
+    font-family: var(--hud-font); font-weight: 700;
+    font-size: calc(var(--size) * var(--hu) * var(--hs)); line-height: 1.1; white-space: nowrap;
+    text-shadow: 0 0 4px #000, 0 0 2px #000, 0 1px 2px #000;
+}
+.fh-el.info .info-icon { display: flex; width: 1.1em; height: 1.1em; flex: none; filter: drop-shadow(0 0 2px #000); }
+.fh-el.info .info-icon svg { width: 100%; height: 100%; }
+.fh-el.info .tip { font-size: 1em; }
+
+/* logo */
+.fh-el.logo { height: auto !important; }
+.fh-el.logo img { width: 100%; height: auto; display: block; }
+
+/* ------------------------------------------------------------------ edit mode */
+.fh-grid {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+    background-image:
+        linear-gradient(to right, rgba(255, 255, 255, .05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, .05) 1px, transparent 1px);
+    background-size: 2.5vw 2.5vw;
+}
+.fh.editing .fh-grid { background-color: rgba(0, 0, 0, .35); opacity: 1; }
+.fh.editing.no-grid .fh-grid { background-image: none; }
+
+.fh.editing .fh-el { pointer-events: auto; cursor: grab; outline: 1px dashed rgba(232, 220, 196, .45); outline-offset: calc(4 * var(--hu)); }
+.fh.editing .fh-el:hover { outline-color: rgba(232, 220, 196, .9); }
+.fh.editing .fh-el.selected { outline: 2px solid var(--gold); }
+.fh.editing .fh-el.dragging { cursor: grabbing; }
+.fh.editing .fh-el.hide { display: block; opacity: .3; }
+.fh.editing .fh-el.info.hide { display: flex; }
+.fh.editing .fh-el.away:not(.hide) { display: block; }
+
+/* ------------------------------------------------------------------ /hudsettings panel (fks-core look) */
+.fh-panel {
+    position: fixed; right: 2.6vw; top: 50%; transform: translateY(-50%);
+    height: calc(84 * var(--u)); width: calc(84 * var(--u) * 560 / 860);
+    background-position: center; background-size: 100% 100%; background-repeat: no-repeat;
+    filter: drop-shadow(0 calc(1.2 * var(--u)) calc(3 * var(--u)) rgba(0, 0, 0, .55));
+    padding: calc(5.6 * var(--u)) calc(5.4 * var(--u)) calc(5 * var(--u)) calc(4.6 * var(--u));
+    display: flex; flex-direction: column;
+    pointer-events: auto;
+    animation: fh-panel-in .3s cubic-bezier(.2, .8, .2, 1) both;
+}
+@keyframes fh-panel-in { from { opacity: 0; transform: translate(3vw, -50%); } }
+.fh-panel.hidden { display: none; }
+.fh-head { cursor: move; }
+.fh-head h1 { font-size: calc(3 * var(--u)); }
+.fh-head .ui-desc { margin-top: calc(.6 * var(--u)); }
+.fh-tabs { margin: calc(1 * var(--u)) 0 calc(.6 * var(--u)); }
+.fh-tabs .chip { font-size: calc(1.15 * var(--u)); padding: calc(.3 * var(--u)) calc(.9 * var(--u)); }
+.fh-body { flex: 1; min-height: 0; overflow: hidden auto; padding-right: calc(.6 * var(--u)); }
+.fh-body .stat { grid-template-columns: calc(12 * var(--u)) 1fr calc(5 * var(--u)); margin-bottom: calc(.9 * var(--u)); }
+.fh-body .field { margin-bottom: calc(1.2 * var(--u)); }
+.fh-body .seg.switch button { padding: calc(.6 * var(--u)); font-size: calc(1.3 * var(--u)); }
+.fh-body .seg.switch .ico { width: calc(1.8 * var(--u)); height: calc(1.8 * var(--u)); }
+.fh-foot { display: flex; justify-content: space-between; gap: calc(.6 * var(--u)); padding-top: calc(1 * var(--u)); border-top: 1px solid var(--faint); }
+.fh-foot-row { display: flex; gap: calc(.6 * var(--u)); }

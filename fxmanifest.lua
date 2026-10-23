@@ -6,7 +6,7 @@ lua54 'yes'
 name 'fks-hud'
 author 'Fonkas'
 description 'HUD + metabolism + consumables for RedM (RSG and VORP)'
-version '1.1.0'
+version '1.2.0'
 license 'GPL-3.0-or-later' -- see LICENSE
 -- fks-hud  Copyright (C) 2026 Fonkas
 
@@ -35,18 +35,17 @@ server_scripts {
     'server/version.lua',
 }
 
-ui_page 'html/index.html'
-
+-- the HUD and /hudsettings are drawn inside the fks-core NUI (2.1.0+, shared FKS UI): only its own
+-- script, styles and logo live here
 files {
-    'html/index.html',
-    'html/style.css',
-    'html/app.js',
-    'html/fonts/*',
-    'html/img/*',
+    'ui/hud.js',
+    'ui/hud.css',
+    'img/*',
 }
 
 -- plus rsg-core or vorp_core (+ vorp_inventory), detected automatically (Config.Framework)
 dependencies {
     'ox_lib',
     'oxmysql',
+    'fks-core', -- 2.1.0+: draws the HUD, notifications and progress bar
 }

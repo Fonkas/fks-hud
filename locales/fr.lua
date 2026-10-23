@@ -27,6 +27,8 @@ Locales['fr'] = {
     cmd_arg_id_help    = 'ID du joueur (sans id = toi)',
     cmd_no_player      = 'Joueur introuvable.',
     cmd_need_set       = '%s du joueur %s définie à %s.',
+    cmd_heal_help      = '(Admin) Remplit la faim et la soif d\'un joueur',
+    cmd_heal_done      = 'Faim et soif du joueur %s définies à 100.',
 
     -- barres de progression
     progress_eating   = 'En train de manger...',

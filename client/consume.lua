@@ -357,7 +357,7 @@ RegisterNetEvent('fks-hud:client:useItem', function(itemName, label)
 
     playAnimation(ped, anim, item.prop)
 
-    local done = lib.progressBar({
+    local done = exports['fks-core']:Progress({
         duration     = anim.duration or 3000,
         label        = anim.label and L(anim.label) or ItemLabel(itemName),
         useWhileDead = false,

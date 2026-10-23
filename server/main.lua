@@ -22,7 +22,7 @@ local pending   = {} -- [src] = { item = name, time = os.time() }
 local cooldowns = {} -- [src][item] = os.time() when it ends
 
 local function notify(src, msg, kind)
-    TriggerClientEvent('ox_lib:notify', src, {
+    TriggerClientEvent('fks-core:client:notify', src, {
         description = msg,
         type        = kind or 'inform',
         duration    = 5000,
@@ -216,6 +216,24 @@ end
 registerNeedCommand(Config.Commands.hunger, 'hunger', UI('hunger'))
 registerNeedCommand(Config.Commands.thirst, 'thirst', UI('thirst'))
 registerNeedCommand(Config.Commands.stress, 'stress', UI('stress'))
+
+-- /heal [id]: hunger and thirst back to 100
+if Config.Commands.heal then
+    Bridge.RegisterAdminCommand(Config.Commands.heal, L('cmd_heal_help'), {
+        { name = L('cmd_arg_id'), help = L('cmd_arg_id_help') },
+    }, function(source, args)
+        local target = tonumber(args[1]) or source
+
+        if not Bridge.PlayerExists(target) then
+            return notify(source, L('cmd_no_player'), 'error')
+        end
+
+        local state = Player(target).state
+        state:set('hunger', 100, true)
+        state:set('thirst', 100, true)
+        notify(source, L('cmd_heal_done', target), 'success')
+    end)
+end
 
 ---------------------------------------------------------------------------
 -- Stress (compatible with the rsg-hud events)

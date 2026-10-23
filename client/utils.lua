@@ -44,7 +44,7 @@ function Debug(...)
 end
 
 function Notify(msg, kind, duration, title, icon)
-    lib.notify({
+    exports['fks-core']:Notify({
         title       = title,
         description = msg,
         type        = kind or 'inform',
