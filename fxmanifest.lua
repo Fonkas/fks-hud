@@ -6,7 +6,7 @@ lua54 'yes'
 name 'fks-hud'
 author 'Fonkas'
 description 'HUD + metabolism + consumables for RedM (RSG and VORP)'
-version '1.2.0'
+version '1.2.1'
 license 'GPL-3.0-or-later' -- see LICENSE
 -- fks-hud  Copyright (C) 2026 Fonkas
 

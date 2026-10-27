@@ -123,6 +123,7 @@ Config.Info = {
     enabled   = true,
     clock24h  = true,  -- false = 12h (AM / PM)
     showDate  = true,  -- show the weekday and date next to the time
+    year      = nil,   -- year shown in the date: nil = game year | number = always that year (e.g. 1899)
     showGrade = true,  -- show the job grade (e.g. Sheriff - Deputy)
     currency  = '$',
     moneyTips = true,  -- show "+$5" / "-$5" when cash changes

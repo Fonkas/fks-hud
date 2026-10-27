@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1
+- New `Config.Info.year`: custom year in the HUD date (`nil` = game year, e.g. `1899` = always 1899).
+
 ## 1.2.0
 - **The HUD and `/hudsettings` are now drawn by fks-core** (shared FKS UI, as an extension): fks-hud no longer has a
   NUI of its own, so the server runs one NUI for every FKS script.

@@ -370,7 +370,7 @@ local function clockText()
     local days, months = L('days'), L('months')
     local day   = days[GetClockDayOfWeek() + 1] or ''
     local month = months[GetClockMonth() + 1] or ''
-    return ('%s, %d %s %d  ·  %s'):format(day, GetClockDayOfMonth(), month, GetClockYear(), time)
+    return ('%s, %d %s %d  ·  %s'):format(day, GetClockDayOfMonth(), month, tonumber(Config.Info.year) or GetClockYear(), time)
 end
 
 local function jobText(info)
