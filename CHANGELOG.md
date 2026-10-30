@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.2
+- Fix: the clock, job, money and ID hidden in `/hudsettings` showed up again after closing the editor.
+
 ## 1.2.1
 - New `Config.Info.year`: custom year in the HUD date (`nil` = game year, e.g. `1899` = always 1899).
 
